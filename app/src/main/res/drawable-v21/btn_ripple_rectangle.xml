@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="#26000000"
+    android:exitFadeDuration="@android:integer/config_shortAnimTime">
+    <!-- ripple color : 클릭했을때 배경 -->
+    <!-- item color : 기본 배경  -->
+
+    <item android:id="@android:id/background">
+        <shape android:shape="rectangle">
+            <solid android:color="#ffffff" />
+        </shape>
+    </item>
+
+</ripple>

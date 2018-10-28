@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:bind="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <variable
+            name="model"
+            type="com.hour24.ygy.model.UserModel.Item" />
+
+        <variable
+            name="handler"
+            type="com.hour24.ygy.adapter.UserListAdapter.BindingHandler" />
+
+        <variable
+            name="position"
+            type="int" />
+    </data>
+
+    <RelativeLayout
+        android:id="@+id/like"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background=" ?android:selectableItemBackgroundBorderless"
+        android:onClick="@{(v) -> handler.onClick(v, model, position)}"
+        android:orientation="vertical">
+
+        <!-- User -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="10dp">
+
+            <ImageView
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:layout_marginBottom="10dp"
+                android:scaleType="centerCrop"
+                bind:loadImage="@{model.avatar_url}"
+                tools:src="@mipmap/ic_launcher" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLength="10"
+                android:maxLines="1"
+                android:text="@{model.login}"
+                android:textColor="#5D5D5D"
+                android:textSize="15sp"
+                tools:text="login" />
+
+            <!-- Extra -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ico_start"
+                    bind:color='@{"#F2CB61"}' />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="5dp"
+                    bind:number='@{model.score}'
+                    bind:point='@{"2"}'
+                    tools:text="90.55" />
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@{model.isLike ? @drawable/ico_favorite_pre : @drawable/ico_favorite_nor}"
+                    bind:color='@{"#FF4081"}'
+                    tools:src="@drawable/ico_favorite_pre" />
+            </LinearLayout>
+        </LinearLayout>
+    </RelativeLayout>
+
+</layout>
