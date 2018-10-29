@@ -12,6 +12,7 @@ import com.hour24.ygy.R;
 import com.hour24.ygy.BR;
 import com.hour24.ygy.model.UserModel;
 import com.like.LikeButton;
+import com.like.OnAnimationEndListener;
 import com.like.OnLikeListener;
 
 import java.util.ArrayList;
@@ -72,6 +73,19 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.ViewHo
             holder.getBinding().setVariable(BR.position, position);
             holder.getBinding().executePendingBindings();
 
+//            if (item.isLike() && mIsUserList) {
+//                holder.likeButton.setVisibility(View.VISIBLE);
+//                holder.likeButton.performClick();
+//                holder.likeButton.setOnAnimationEndListener(new OnAnimationEndListener() {
+//                    @Override
+//                    public void onAnimationEnd(LikeButton likeButton) {
+//                        holder.likeButton.setVisibility(View.GONE);
+//                    }
+//                });
+//            } else {
+//                holder.likeButton.setVisibility(View.GONE);
+//            }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -81,10 +95,14 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.ViewHo
     public class ViewHolder extends RecyclerView.ViewHolder {
 
         private ViewDataBinding binding;
+        private LikeButton likeButton;
 
         public ViewHolder(View itemView) {
             super(itemView);
             binding = DataBindingUtil.bind(itemView);
+
+            // Like Button
+            likeButton = (LikeButton) itemView.findViewById(R.id.like_button);
         }
 
         public ViewDataBinding getBinding() {
@@ -100,21 +118,21 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.ViewHo
             try {
                 switch (view.getId()) {
                     case R.id.like:
-
                         if (mIsUserList) {
                             // like 만 가능
                             if (!item.isLike()) {
                                 item.setLike(true);
+                                mList.set(position, item);
+                                notifyItemChanged(position);
                             }
                         } else {
                             // unLike 만 가능
                             if (item.isLike()) {
                                 item.setLike(false);
+                                mList.set(position, item);
+                                notifyItemChanged(position);
                             }
                         }
-
-                        mList.set(position, item);
-                        notifyItemChanged(position);
                         break;
                 }
             } catch (Exception e) {

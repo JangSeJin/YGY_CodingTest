@@ -37,12 +37,18 @@ dependencies {
     // picasso
     implementation 'com.squareup.picasso:picasso:2.71828'
 
-    // retrofit
-    implementation 'com.google.code.gson:gson:2.8.5'
-    implementation 'com.squareup.retrofit2:retrofit:2.4.0'
-    implementation 'com.squareup.retrofit2:converter-gson:2.4.0'
-    implementation 'com.squareup.retrofit2:converter-scalars:2.4.0'
-    implementation 'com.squareup.okhttp3:logging-interceptor:3.9.1'
+    // Retrofit
+    implementation "com.squareup.retrofit2:retrofit:2.0.2"
+    implementation "com.squareup.retrofit2:converter-gson:2.0.2" // GSON
+    implementation "com.squareup.retrofit2:converter-scalars:2.0.2" // scalars
+    implementation "com.squareup.retrofit2:adapter-rxjava:2.0.2"
+    // RxJava, RxAndroid
+    implementation("com.squareup.retrofit2:converter-simplexml:2.0.2") {
+        // Retrofit Simple Xml
+        exclude group: 'xpp3', module: 'xpp3'
+        exclude group: 'stax', module: 'stax-api'
+        exclude group: 'stax', module: 'stax'
+    }
 
     // lombok
     provided 'org.projectlombok:lombok:1.16.6'
@@ -50,6 +56,8 @@ dependencies {
 
     // like button
     implementation 'com.github.jd-alexander:LikeButton:0.2.3'
+
+    implementation 'com.facebook.rebound:rebound:0.3.8'
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'

@@ -1,12 +1,11 @@
 package com.hour24.ygy.activity;
 
 import android.databinding.DataBindingUtil;
+import android.os.Bundle;
+import android.os.Handler;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutManager;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -17,7 +16,9 @@ import com.hour24.ygy.R;
 import com.hour24.ygy.adapter.UserListAdapter;
 import com.hour24.ygy.databinding.MainActivityBinding;
 import com.hour24.ygy.model.UserModel;
-import com.hour24.ygy.service.GitHubService;
+import com.hour24.ygy.network.retrofit.RetrofitCall;
+import com.hour24.ygy.network.retrofit.RetrofitRequest;
+import com.hour24.ygy.network.retrofit.service.GitHubService;
 import com.hour24.ygy.utils.Utils;
 
 import java.util.ArrayList;
@@ -25,8 +26,6 @@ import java.util.ArrayList;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -42,6 +41,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private boolean mIsUserList = true; // 화면에 어떤 종류를 보여줄 것인가 유무
 
+    // Delay Handler - 특정시간 입력 이후 서버 데이터 전송
+    private Runnable mDelayRunnable;
+    private Handler mDelayHandler;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,10 +53,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         initLayout();
         initVariable();
         initEventListener();
+        onRecognizeDelay();
 
         mBinding.search.setText("tom");
         requestSearchUser("tom");
 
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        // Handler Remove
+        if (mDelayHandler != null) {
+            mDelayHandler.removeCallbacks(mDelayRunnable);
+        }
     }
 
     private void initLayout() {
@@ -63,14 +76,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mBinding.setIsUserList(mIsUserList);
 
         mBinding.showList.setLayoutManager(new GridLayoutManager(this, 3));
-        mBinding.showList.setItemAnimator(new DefaultItemAnimator());
 
         // like like
         mBinding.userList.setOnClickListener(this);
         mBinding.likeList.setOnClickListener(this);
 
         // 엔터키
-        mBinding.search.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
+//        mBinding.search.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
         mBinding.search.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
@@ -109,49 +121,68 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     }
 
+    // 인식 딜레이
+    private void onRecognizeDelay() {
+        mDelayHandler = new Handler();
+        mDelayRunnable = new Runnable() {
+            @Override
+            public void run() {
+                // run 이 되는 순간 입력완료라고 판단
+                if (mBinding.search.length() > 0) {
+                    // 자동완성 데이터 통신
+                    requestSearchUser(mBinding.search.getText().toString());
+                }
+            }
+        };
+    }
+
     /**
      * User 검색
      */
-    private void requestSearchUser(String search) {
+    private void requestSearchUser(final String search) {
+
+        // 딜레이 해제
+        mDelayHandler.removeCallbacks(mDelayRunnable);
 
         setIsUserList(true);
 
-        mUserList.clear();
-        mLikeList.clear();
-        mShowList.clear();
+        GitHubService service = RetrofitRequest.createRetrofitJSONService(GitHubService.class, "https://api.github.com/");
 
+        Call<UserModel> call = service.getUserList(
+                "620d007b3da1488f4c9d",
+                "e2004e763172eae9b59f75f352c99e8678dbe082",
+                search, "", "");
 
-        if (search.length() < 1) {
-            // 리스트 상태 변화
-            mAdapter.notifyDataSetChanged();
-            return;
-        }
+        RetrofitCall.enqueueWithRetry(call, new Callback<UserModel>() {
 
-        Retrofit.Builder retrofitBuilder = new Retrofit.Builder().baseUrl("https://api.github.com/");
-
-        retrofitBuilder.addConverterFactory(GsonConverterFactory.create());
-        GitHubService service = retrofitBuilder.build().create(GitHubService.class);
-
-        Call<UserModel> retrofitService = service.getUserList(search, "", "");
-        retrofitService.enqueue(new Callback<UserModel>() {
             @Override
             public void onResponse(Call<UserModel> call, Response<UserModel> response) {
 
                 try {
 
+                    mUserList.clear();
+                    mLikeList.clear();
+                    mShowList.clear();
+
+                    if (search.length() < 1) {
+                        mAdapter.notifyDataSetChanged();
+                        return;
+                    }
+
                     if (response.body() != null) {
 
                         UserModel model = response.body();
                         if (model != null) {
-
                             mUserList.addAll(model.getItems());
                             mShowList.addAll(mUserList);
 
                             mAdapter.notifyDataSetChanged();
+                            mBinding.showList.scheduleLayoutAnimation();
                         }
 
-                        Log.e(TAG, model.toString());
+                        Log.e(TAG, "" + model.toString());
                     } else {
+                        Log.e(TAG, "" + response.errorBody().string());
                         Snackbar.make(mBinding.getRoot(), getString(R.string.main_search_empty), Snackbar.LENGTH_SHORT).show();
                     }
                 } catch (Exception e) {
@@ -159,17 +190,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     Log.e(TAG, e.getMessage());
                     Snackbar.make(mBinding.getRoot(), getString(R.string.main_search_empty), Snackbar.LENGTH_SHORT).show();
                 }
+
             }
 
             @Override
             public void onFailure(Call<UserModel> call, Throwable t) {
-                Log.e(TAG, t.getMessage());
+
             }
         });
+
     }
 
     @Override
     public void onClick(View view) {
+
+        Utils.setKeyboardShowHide(this, view, false);
+
         switch (view.getId()) {
             case R.id.user_list:
 
@@ -217,7 +253,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         public void onTextChanged(CharSequence s, int start, int before, int count) {
             if (s.length() > 0) {
-                requestSearchUser(String.valueOf(s));
+                mDelayHandler.postDelayed(mDelayRunnable, 500); // 0.5 초 딜레이
+            } else {
+                mUserList.clear();
+                mLikeList.clear();
+                mShowList.clear();
+                mAdapter.notifyDataSetChanged();
             }
         }
     }

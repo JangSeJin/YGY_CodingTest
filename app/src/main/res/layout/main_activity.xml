@@ -38,22 +38,23 @@
                 android:layout_weight="1"
                 android:background="@null"
                 android:hint="@string/main_search_hint"
-                android:maxLines="1"
+                android:imeOptions="actionSearch"
+                android:inputType="text"
                 android:onTextChanged="@{(text, start, before, count) -> handler.onTextChanged(text, start, before, count)}"
-                android:padding="10dp" />
+                android:padding="10dp"
+                android:privateImeOptions="defaultInputmode=english" />
 
             <RelativeLayout
                 android:layout_width="30dp"
                 android:layout_height="30dp"
-                android:layout_margin="10dp"
-                android:background=" ?android:selectableItemBackgroundBorderless">
+                android:layout_margin="10dp">
 
                 <ImageView
                     android:id="@+id/like_list"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_gravity="center"
-                    android:background=" ?android:selectableItemBackgroundBorderless"
+                    android:background="?attr/selectableItemBackgroundBorderless"
                     android:clickable="true"
                     android:src="@drawable/ico_list"
                     android:visibility="@{isUserList ? View.VISIBLE : View.GONE}" />
@@ -63,6 +64,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_gravity="center"
+                    android:background="?attr/selectableItemBackgroundBorderless"
                     android:clickable="true"
                     android:src="@drawable/ico_return"
                     android:visibility="@{isUserList ? View.GONE : View.VISIBLE}" />
@@ -72,7 +74,8 @@
         <android.support.v7.widget.RecyclerView
             android:id="@+id/show_list"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:layoutAnimation="@anim/layout_animation_slide_bottom" />
     </LinearLayout>
 
 </layout>
